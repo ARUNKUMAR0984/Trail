@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <style>
+    /* Shared styles for both light and dark modes */
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh;
+        transition: background-color 0.3s;
+        background-color: #f4f4f4; /* Light mode background color */
+        color: #333; /* Light mode text color */
+    }
+
+    .reply-container {
+        display: none;
+    }
+
+    h1 {
+        color: #4CAF50;
+        font-size: 50px;
+        padding: 10px;
+    }
+
+    .chat-container {
+        max-width: 650px;
+        width: fit-content;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 25px;
+        overflow: hidden;
+
+        background-color: #4CAF50; /* Light mode container background color */
+    }
+
+    .chat-header,
+    .search {
+        padding: 15px;
+        text-align: center;
+        font-size: 20px;
+        border-bottom: 5px solid #10610a;
+        background-color: #4CAF50; /* Light mode header background color */
+        color: #fff; /* Light mode header text color */
+    }
+
+    .chat-messages {
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: #f9f9f9; /* Light mode messages background color */
+        transition: background-color 0.3s;
+      }
+
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: start;
+        transition: background-color 0.3s;
+    }
+
+    .message.received {
+        align-items: flex-start;
+    }
+
+    .message .user {
+        font-weight: bold;
+        color: #4CAF50;
+        margin-right: 8px;
+        align-self: center;
+        transition: background-color 0.3s;
+    }
+
+    .message .text {
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        max-width: 70%;
+        word-wrap: break-word;
+        transition: background-color 0.3s;
+    }
+
+    .message.sent {
+        align-items: flex-end;
+    }
+
+    .message.sent .text {
+        color: #ffffff;
+        background-color: #63c366;
+        position: relative;
+        align-self: flex-end; /* Add this line to align the sent message to the right */
+        transition: background-color 0.3s;
+      }
+
+    .message.sent.timestamp {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        margin-right: 10px;
+        font-size: 12px;
+        color: #777;
+        transition: background-color 0.3s;
+    }
+
+    .message.received {
+        align-self: flex-start;
+    }
+
+    .message.received .text {
+        color: #ffffff;
+        background-color: #63c366;
+        position: relative;
+        transition: background-color 0.3s;
+    }
+
+    .message .timestamp {
+        margin-left: 10px;
+        font-size: 12px;
+        color: #777;
+        align-self: center;
+        transition: background-color 0.3s;
+    }
+
+    .chat-input {
+        display: flex;
+        width: 95%;
+        padding: 5px;
+        position:absolute;
+        align-self: center;
+        border-radius: 10px;
+        bottom:0%;
+        background-color:#4CAF50 ;
+    }
+
+    .input-field {
+        flex: 1;
+        padding: 10px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 25px;
+        transition: border-color 0.3s;
+    }
+
+    .input-field:focus {
+        border-color: #4CAF50;
+    }
+
+    #send-button {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    #send-button1 {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    #search-button {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    #search-button1 {
+        background-color: #ffffff;
+        color: #000000;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    #send-button:hover {
+        background-color: #45a049;
+    }
+
+    /* Additional styling for search bar and results */
+    #searchInput {
+        padding: 8px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #searchResults {
+        list-style: none;
+        padding: 0;
+    }
+
+    #searchResults li {
+        margin-bottom: 8px;
+    }
+</style>
+
+<style id="dark-mode-styles">
+    body.dark-mode {
+        background-color: #2f2e2e;
+        color: #ffffff;
+    }
+
+    body.dark-mode h1 {
+        color: #8f938f;
+        font-size: 50px;
+    }
+
+    body.dark-mode .chat-container {
+        background-color: #1e1e1e;
+        color: #fff;
+    }
+
+    body.dark-mode .chat-header,
+    body.dark-mode .search {
+        background-color: #333;
+        color: #fff;
+    }
+
+    body.dark-mode .chat-messages {
+        background-color: #000000;
+        color: #fff;
+    }
+
+    body.dark-mode .message .user{
+      color: #8f938f;
+      font-weight: bold;
+        
+        margin-right: 8px;
+        align-self: center;
+    }
+
+    body.dark-mode .message .text,
+    body.dark-mode .chat-input {
+        background-color: #8f938f;
+        color: #fff;
+    }
+
+    body.dark-mode .message .text {
+        background-color: #e9e9ff;
+        color: #fff;
+    }
+
+    body.dark-mode .input-field {
+        border: 1px solid #555;
+    }
+
+    body.dark-mode #send-button {
+        background-color: #fbfbfb;
+        color: #222121;
+    }
+
+    body.dark-mode .message.sent .text {
+        color: #040000;
+        background-color: #ffffff;
+    }
+    body.dark-mode .message.received .text {
+        color: #040000;
+        background-color: #ffffff;
+    }
+
+    body.dark-mode.message .user {
+        font-weight: bold;
+        color: #a7c2a8c5;
+        margin-right: 8px;
+        align-self: center;
+    }
+</style>
+
+
+</head>
+<body>
+  <h1>ChatCon</h1>
+  <div class="chat-container">
+    <div class="chat-header">Chat App
+      
+      <div id="user"><%= Username %></div>
+      
+    </div>
+    <div class="search">
+      <input type="text" id="searchInput" placeholder="Search users">
+      
+      <button onclick="searchUsers()" id="search-button">Search</button>
+      <button  id="search-button1" onclick="logout()">Logout</button>
+      <form action="dashboard">
+        <button>DASHBOARD</button>
+      </form>
+      <button id="dark-mode-toggle" onclick="darkModeToggle()">Toggle Dark Mode</button>
+    </div>
+    <div class="chat-messages" id="chat"></div>
+    <div class="chat-input">
+      <input type="text" class="input-field" id="text" placeholder="Type your message" required>
+      <button type="button" id="send-button" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+  
+  <!-- Display search results -->
+  <ul id="searchResults"></ul>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+  <script>
+    console.log('Client script running');
+
+    const socket = io();
+    console.log('Socket connection established:', socket.connected);
+
+    const user = $('#user').text(); // Get the username
+
+    
+    
+
+    function sendMessage() {
+  const text = $('#text').val();
+  socket.emit('chat message', { user, text });
+  $('#text').val('');
+}
+
+    $('#messageForm').submit(function (event) {
+      event.preventDefault();
+      const text = $('#text').val();
+      socket.emit('chat message', { user, text });
+      $('#text').val('');
+    });
+
+    socket.on('chat message', function (msg) {
+  const chatContainer = $('#chat');
+  const isCurrentUser = msg.user === user;
+  const messageClass = isCurrentUser ? 'sent' : 'received';
+  const displayName = isCurrentUser ? 'You' : msg.user;
+  const timestamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
+  const messageHtml = `
+    <div class="message ${messageClass}">
+      <span class="user">${displayName}:</span>
+      <span class="text">${msg.text}</span>
+      <span class="timestamp">${timestamp}</span>
+    </div>`;
+
+  chatContainer.append(messageHtml);
+  chatContainer.scrollTop(chatContainer[0].scrollHeight);
+});
+
+    
+    function logout() {
+    // Implement your logout logic here
+    // For example, you can redirect the user to the logout route
+    window.location.href = '/logout';
+  }
+    socket.emit('join', user);
+
+    function darkModeToggle() {
+      const body = document.body;
+      body.classList.toggle('dark-mode');
+    };
+  </script>
+</body>
+</html>
